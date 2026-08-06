@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithms Class: Mảng Đếm & Đánh Dấu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+        
+        :root {
+            --bg-farm: #fdf8f5; /* Màu nền ấm áp */
+            --farm-green: #4ade80;
+            --farm-brown: #8b5cf6; /* Tím nhẹ thay cho nâu để hiện đại hơn */
+            --text-dark: #334155;
+            --accent-orange: #fb923c;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-farm);
+            color: var(--text-dark);
+            scroll-behavior: smooth;
+        }
+
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .glass-card {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        }
+
+        .sidebar-link.active {
+            border-left: 4px solid var(--accent-orange);
+            background-color: #fff7ed;
+            color: #c2410c;
+            font-weight: 700;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        pre {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .keyword { color: #c678dd; }
+        .comment { color: #7dd3fc; font-style: italic; }
+        .number { color: #d19a66; }
+        .string { color: #98c379; }
+
+        .farm-container {
+            background: linear-gradient(180deg, #e0f2fe 0%, #bbf7d0 100%);
+            border-radius: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #86efac;
+        }
+
+        .cow-pen {
+            border: 3px dashed #94a3b8;
+            border-radius: 1rem;
+            background: rgba(255,255,255,0.6);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .cow-pen.highlight {
+            border-color: #fb923c;
+            background: #ffedd5;
+            transform: scale(1.05);
+        }
+
+        .cow-emoji {
+            font-size: 2.5rem;
+            position: absolute;
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 10;
+            filter: drop-shadow(0 4px 3px rgb(0 0 0 / 0.2));
+        }
+
+        .pen-counter {
+            font-family: 'Fira Code', monospace;
+            font-size: 2rem;
+            font-weight: 800;
+            color: #c2410c;
+        }
+
+    </style>
+</head>
+<body class="antialiased text-base md:text-lg">
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white fixed h-full z-20 hidden md:block border-r border-slate-200 shadow-sm flex flex-col">
+            <div class="p-6 pb-2">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-xl">💡</div>
+                    <h1 class="text-xl font-extrabold text-slate-800 leading-tight">Algorithms<br>Class</h1>
+                </div>
+                <p class="text-[11px] text-slate-400 uppercase tracking-widest font-bold mt-4">Kỹ thuật trọng tâm</p>
+            </div>
+            
+            <nav class="mt-2 flex-1 flex flex-col gap-1 px-3">
+                <a href="#" onclick="showSection('intro')" class="sidebar-link active rounded-xl py-3 px-4 text-slate-600 hover:bg-slate-50 transition-all font-semibold flex items-center gap-2"><span class="opacity-60">01.</span> Tư duy Nông Trại</a>
+                <a href="#" onclick="showSection('counting')" class="sidebar-link rounded-xl py-3 px-4 text-slate-600 hover:bg-slate-50 transition-all font-semibold flex items-center gap-2"><span class="opacity-60">02.</span> Đếm Phân Phối</a>
+                <a href="#" onclick="showSection('marking')" class="sidebar-link rounded-xl py-3 px-4 text-slate-600 hover:bg-slate-50 transition-all font-semibold flex items-center gap-2"><span class="opacity-60">03.</span> Đánh Dấu (Marking)</a>
+                <a href="#" onclick="showSection('practice')" class="sidebar-link rounded-xl py-3 px-4 text-slate-600 hover:bg-slate-50 transition-all font-semibold flex items-center gap-2"><span class="opacity-60">04.</span> Bài Tập Thực Hành</a>
+            </nav>
+            
+            <div class="p-5 m-4 bg-slate-50 rounded-2xl border border-slate-100 mt-auto">
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-2">Author</p>
+                <p class="font-extrabold text-slate-700 text-base">Trần Văn Nam</p>
+                <div class="mt-2 text-sm text-slate-500 font-medium leading-relaxed">
+                    Da Nang University of<br>Science and Technology
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 md:ml-64 p-6 md:p-12 lg:p-16">
+            
+            <!-- SECTION 1: Tư duy lùa bò -->
+            <section id="intro" class="tab-content active max-w-5xl mx-auto">
+                <div class="mb-12">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-100 text-orange-700 text-sm font-bold uppercase tracking-wider mb-4">
+                        <span class="text-lg">🐄</span> Vấn đề thực tế
+                    </div>
+                    <h2 class="text-3xl md:text-5xl font-extrabold mb-8 text-slate-800 tracking-tight leading-tight">Tư Duy Lùa Bò Vào Chuồng</h2>
+                    
+                    <p class="text-xl text-slate-700 mb-10 leading-relaxed font-medium">
+                        Hãy tưởng tượng bạn là chủ một nông trại có một đàn bò lộn xộn gồm 3 loại: <strong>Bò Sữa (Màu 0)</strong>, <strong>Bò Vàng (Màu 1)</strong> và <strong>Bò Đen (Màu 2)</strong>. 
+                        Cuối ngày, bạn muốn đếm xem mỗi loại có bao nhiêu con.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                        <!-- Cách chậm -->
+                        <div class="glass-card p-8 rounded-3xl relative overflow-hidden group hover:border-red-200 transition-colors">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+                            <h3 class="font-bold text-slate-800 mb-4 text-xl flex items-center gap-3">
+                                <span class="bg-red-100 text-red-600 p-2 rounded-xl text-base">🐢</span> Cách làm "Chậm"
+                            </h3>
+                            <p class="text-slate-600 text-lg leading-relaxed mb-5">
+                                Bạn chạy ra bãi cỏ, đếm từng con bò sữa. Xong xuôi, bạn lại phải chạy ra bãi cỏ một vòng nữa để tìm và đếm bò vàng. 
+                            </p>
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-base">
+                                <span class="text-red-600 font-bold">Nhược điểm:</span> Duyệt đàn bò <strong>nhiều lần</strong>. Máy tính sẽ bị chậm!
+                            </div>
+                        </div>
+
+                        <!-- Cách nhanh -->
+                        <div class="glass-card p-8 rounded-3xl relative overflow-hidden group hover:border-green-300 transition-colors border-2 border-green-200 shadow-sm">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+                            <h3 class="font-bold text-slate-800 mb-4 text-xl flex items-center gap-3">
+                                <span class="bg-green-100 text-green-600 p-2 rounded-xl text-base">🚀</span> Cách làm "Nhanh"
+                            </h3>
+                            <p class="text-slate-600 text-lg leading-relaxed mb-5">
+                                Bạn xây sẵn <strong>3 cái chuồng</strong> (đánh số 0, 1, 2). Bạn lùa cả đàn đi qua cổng, hễ gặp con bò màu gì thì đẩy luôn nó vào chuồng có số đó.
+                            </p>
+                            <div class="bg-green-50 p-4 rounded-xl border border-green-200 text-base text-green-900">
+                                <span class="font-bold text-green-700">Ưu điểm:</span> Chỉ duyệt <strong>1 lần duy nhất</strong>. Muốn biết số lượng, ra nhìn chuồng là xong!
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800 p-10 rounded-3xl shadow-xl text-white relative overflow-hidden">
+                        <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl">💡</div>
+                        <h3 class="text-3xl font-extrabold mb-6">Từ Nông Trại đến Tin Học!</h3>
+                        <p class="text-slate-300 leading-relaxed text-xl mb-8">
+                            Trong lập trình, <strong>Đàn bò</strong> chính là <span class="text-orange-400 font-bold">Mảng dữ liệu ban đầu (Mảng A)</span>. 
+                            Còn <strong>Các cái chuồng</strong> chính là <span class="text-green-400 font-bold">Mảng Đếm (Mảng countArray)</span>.
+                        </p>
+                        <div class="bg-slate-900/80 p-6 rounded-2xl border border-slate-700 font-mono text-base md:text-lg shadow-inner">
+                            <span class="text-slate-400">// Tư duy cốt lõi của Đếm Phân Phối:</span><br><br>
+                            <span class="text-blue-300">"Sử dụng GIÁ TRỊ của phần tử làm CHỈ SỐ (Index) cho mảng đếm"</span><br><br>
+                            Bò <span class="text-orange-400 font-bold">Màu 2</span> đi qua ➔ <span class="text-green-400 font-bold">countArray</span>[<span class="text-orange-400 font-bold">2</span>]++
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="counting" class="tab-content max-w-5xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-extrabold mb-6 text-slate-800 tracking-tight">Mô Phỏng Trực Quan</h2>
+                <p class="text-slate-600 mb-10 text-xl leading-relaxed">Cách mảng đếm hoạt động thực tế qua ví dụ lùa đàn 6 con bò vào chuồng.</p>
+
+                <!-- Nông trại UI -->
+                <div class="farm-container p-8 md:p-12 mb-12 shadow-lg">
+                    <!-- Khu vực bãi cỏ (Chứa bò đang đợi) -->
+                    <div class="mb-10 relative h-20 flex gap-4 items-center" id="waiting-cows">
+                        <span class="text-base font-extrabold text-slate-600 absolute -top-8 left-0 uppercase tracking-widest bg-white/50 px-3 py-1 rounded-lg">Bãi cỏ (Mảng A): [2, 0, 1, 2, 2, 0]</span>
+                        <!-- JS sẽ chèn bò vào đây -->
+                    </div>
+
+                    <!-- Khu vực chuồng (Mảng đếm) -->
+                    <div class="grid grid-cols-3 gap-6 md:gap-10 mt-16 relative">
+                        <span class="text-base font-extrabold text-slate-600 absolute -top-10 left-0 uppercase tracking-widest bg-white/50 px-3 py-1 rounded-lg">Chuồng bò (Mảng countArray):</span>
+                        
+                        <!-- Chuồng 0 -->
+                        <div class="cow-pen p-6 flex flex-col items-center justify-end h-40" id="pen-0">
+                            <div class="pen-counter mb-4" id="count-0">0</div>
+                            <div class="text-sm font-bold text-slate-600 uppercase bg-white px-4 py-2 rounded-full shadow-md">Chuồng 0 (Sữa)</div>
+                        </div>
+                        
+                        <!-- Chuồng 1 -->
+                        <div class="cow-pen p-6 flex flex-col items-center justify-end h-40" id="pen-1">
+                            <div class="pen-counter mb-4" id="count-1">0</div>
+                            <div class="text-sm font-bold text-slate-600 uppercase bg-white px-4 py-2 rounded-full shadow-md">Chuồng 1 (Vàng)</div>
+                        </div>
+
+                        <!-- Chuồng 2 -->
+                        <div class="cow-pen p-6 flex flex-col items-center justify-end h-40" id="pen-2">
+                            <div class="pen-counter mb-4" id="count-2">0</div>
+                            <div class="text-sm font-bold text-slate-600 uppercase bg-white px-4 py-2 rounded-full shadow-md">Chuồng 2 (Đen)</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-12 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <button onclick="runFarmSimulation()" class="w-full sm:w-auto bg-orange-500 text-white px-10 py-4 rounded-2xl font-extrabold text-lg shadow-xl shadow-orange-200 hover:bg-orange-600 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
+                            <span class="text-xl">▶</span> Bắt đầu lùa bò
+                        </button>
+                        <div id="sim-status" class="text-slate-800 font-bold bg-white/80 px-6 py-3 rounded-xl text-base hidden border-2 border-white shadow-sm">Đang lùa bò...</div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 rounded-3xl p-8 shadow-2xl relative">
+                    <div class="flex items-center gap-3 mb-6 border-b border-slate-700/50 pb-5">
+                        <div class="flex gap-2">
+                            <div class="w-3.5 h-3.5 rounded-full bg-red-500"></div>
+                            <div class="w-3.5 h-3.5 rounded-full bg-yellow-500"></div>
+                            <div class="w-3.5 h-3.5 rounded-full bg-green-500"></div>
+                        </div>
+                        <span class="text-sm font-bold text-slate-400 uppercase tracking-widest font-mono">counting_array.cpp</span>
+                    </div>
+                    <pre class="code-font text-base md:text-lg !p-0 !bg-transparent !shadow-none"><code class="language-cpp"><span class="keyword">int</span> A[] = {<span class="number">2</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">0</span>}; <span class="comment">// Đàn bò 6 con (0: Sữa, 1: Vàng, 2: Đen)</span>
+<span class="keyword">int</span> n = <span class="number">6</span>;
+
+<span class="comment">// 1. Khai báo 3 cái chuồng và dọn sạch sẽ (gán bằng 0)</span>
+<span class="keyword">int</span> countArray[<span class="number">3</span>] = {<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>}; 
+
+<span class="comment">// 2. Lùa từng con qua cửa</span>
+<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i < n; i++) {
+    <span class="keyword">int</span> mauBo = A[i]; 
+    <span class="comment">// Đẩy bò vào chuồng tương ứng với màu của nó</span>
+    countArray[mauBo]++; 
+}
+
+<span class="comment">// 3. Muốn biết số bò đen (Màu 2)? Ra nhìn chuồng số 2 thôi!</span>
+cout << <span class="string">"So bo den la: "</span> << countArray[<span class="number">2</span>]; <span class="comment">// In ra 3</span></code></pre>
+                </div>
+            </section>
+
+            <section id="marking" class="tab-content max-w-5xl mx-auto">
+                <div class="mb-14">
+                    <h2 class="text-3xl md:text-4xl font-extrabold mb-6 text-slate-800 tracking-tight">Đánh Dấu (Marking Array)</h2>
+                    <p class="text-slate-600 mb-10 text-xl leading-relaxed">Là phiên bản "thu gọn" của đếm phân phối. Ta không quan tâm <strong>CÓ BAO NHIÊU</strong> con, ta chỉ quan tâm <strong>CÓ XUẤT HIỆN HAY KHÔNG?</strong></p>
+
+                    <div class="flex flex-col md:flex-row gap-8 mb-10">
+                        <div class="flex-1 bg-white p-8 rounded-3xl border border-slate-200 shadow-md">
+                            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-6">🏫</div>
+                            <h3 class="font-extrabold text-slate-800 text-2xl mb-4">Ví dụ: Điểm danh vắng mặt</h3>
+                            <p class="text-slate-600 text-lg leading-relaxed">
+                                Lớp có 1 triệu học sinh (mã số từ <code>1</code> đến <code>1000000</code>). Hôm nay có 3 bạn đi muộn là <strong>[4, 1, 5]</strong>. 
+                                Làm sao để thầy giám thị biết nhanh mã số <code>3</code> có đi muộn hay không?
+                            </p>
+                        </div>
+                        <div class="flex-1 bg-blue-50/50 p-8 rounded-3xl border-2 border-blue-100 shadow-sm">
+                            <h3 class="font-extrabold text-blue-800 text-xl mb-6">Giải pháp O(1)</h3>
+                            <ul class="space-y-5 text-lg text-slate-700 font-medium">
+                                <li class="flex items-start gap-4">
+                                    <span class="bg-blue-200 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">1</span> 
+                                    <span>Tạo mảng <code>bool diMuon[1000001] = {false}</code></span>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <span class="bg-blue-200 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">2</span> 
+                                    <span>Duyệt danh sách, đánh dấu <code>diMuon[x] = true</code></span>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <span class="bg-blue-200 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">3</span> 
+                                    <span>Tra cứu cực nhanh: <code>if (diMuon[3]) ...</code></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-amber-50 border-l-8 border-amber-500 p-6 md:p-8 rounded-r-2xl shadow-sm">
+                        <h4 class="font-extrabold text-amber-900 mb-3 text-xl">Tại sao dùng mảng Bool thay vì Int?</h4>
+                        <p class="text-lg text-amber-800 leading-relaxed font-medium">Kiểu <code>bool</code> (True/False) chỉ tốn 1 byte bộ nhớ. Trong khi kiểu <code>int</code> tốn 4 bytes. Nếu chỉ cần biết Có/Không, dùng mảng đánh dấu bool sẽ <strong>tiết kiệm RAM gấp 4 lần</strong> cho bài toán lớn!</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="practice" class="tab-content max-w-5xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-extrabold mb-6 text-slate-800 tracking-tight">Luyện Tập & Bẫy CP</h2>
+                <p class="text-slate-600 mb-10 text-xl leading-relaxed">Áp dụng tư duy vào giải bài tập và những lưu ý "chết người" khi đi thi Lập trình thi đấu (Competitive Programming).</p>
+
+                <div class="space-y-8">
+                    <!-- Bài tập -->
+                    <div class="glass-card p-8 md:p-10 rounded-3xl border-l-8 border-l-green-500 shadow-md">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                            <h3 class="font-extrabold text-2xl text-slate-800">Bài 1: Đếm số phần tử phân biệt</h3>
+                            <span class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-extrabold rounded-xl uppercase tracking-widest">Mảng Đánh Dấu</span>
+                        </div>
+                        <p class="text-slate-700 text-lg mb-6 leading-relaxed font-medium">
+                            Cho mảng <strong>A</strong> gồm <strong>N</strong> phần tử (N &le; 10<sup>5</sup>). Các giá trị 0 &le; <strong>A[i]</strong> &le; 10<sup>6</sup>. Đếm xem có bao nhiêu con số khác nhau xuất hiện trong mảng?
+                        </p>
+                        <details class="group bg-slate-50 border-2 border-slate-200 rounded-2xl overflow-hidden">
+                            <summary class="font-bold text-slate-800 text-lg p-5 cursor-pointer hover:bg-slate-100 transition-colors list-none flex justify-between items-center">
+                                Xem gợi ý giải thuật
+                                <span class="text-slate-400 group-open:rotate-180 transition-transform text-xl">▼</span>
+                            </summary>
+                            <div class="p-6 pt-0 text-lg text-slate-700 border-t-2 border-slate-200 bg-white leading-relaxed font-medium">
+                                <ul class="list-disc pl-5 space-y-3">
+                                    <li>Tạo <code>bool mark[1000001] = {false};</code></li>
+                                    <li>Duyệt mảng gốc, với mỗi phần tử <code>x</code>, đánh dấu <code>mark[x] = true;</code></li>
+                                    <li>Cuối cùng, duyệt mảng <code>mark</code> từ <code>0</code> đến <code>10<sup>6</sup></code>, đếm xem có bao nhiêu ô mang giá trị <code>true</code>. Đó chính là đáp án.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- Bẫy CP -->
+                    <div class="bg-red-50 p-8 md:p-10 rounded-3xl border-2 border-red-200 relative overflow-hidden shadow-sm">
+                        <div class="absolute right-0 top-0 opacity-5 text-9xl rotate-12">⚠️</div>
+                        <h3 class="font-extrabold text-2xl text-red-800 mb-5 flex items-center gap-3">
+                            <span class="text-3xl">☠️</span> Điểm Chết Của Kỹ Thuật Này
+                        </h3>
+                        <p class="text-red-700 text-lg font-bold mb-6">Bạn <span class="underline decoration-4 underline-offset-4">TUYỆT ĐỐI KHÔNG</span> được dùng mảng đếm/đánh dấu trong 2 trường hợp sau:</p>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-sm">
+                                <h4 class="font-extrabold text-slate-800 text-lg mb-3">1. Giá trị mảng bị ÂM</h4>
+                                <p class="text-base text-slate-600 leading-relaxed">Trong C/C++, chỉ số mảng (Index) không thể là số âm. Nếu <strong>A[i] = -5</strong>, lệnh <code>countArray[-5]++</code> sẽ làm chương trình Crash ngay lập tức (Segmentation Fault).</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-sm">
+                                <h4 class="font-extrabold text-slate-800 text-lg mb-3">2. Giá trị quá LỚN</h4>
+                                <p class="text-base text-slate-600 leading-relaxed">Nếu <strong>A[i] = 10<sup>9</sup></strong>, bạn phải khai báo mảng <code>int countArray[1000000000]</code>. Cấp phát mảng quá lớn sẽ gây tràn RAM (Memory Limit Exceeded). Giới hạn an toàn tối đa thường là mảng &approx; 10<sup>7</sup> phần tử.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 text-base font-extrabold text-red-700 text-center bg-red-100/50 py-4 rounded-xl border border-red-200">
+                            Giải pháp thay thế: Chuyển sang dùng cấu trúc dữ liệu std::map hoặc Sắp xếp (Sorting).
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        // --- 1. Chuyển đổi Tab (Sidebar Navigation) ---
+        function showSection(sectionId) {
+            document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.classList.remove('active');
+                if(link.getAttribute('onclick').includes(sectionId)) {
+                    link.classList.add('active');
+                }
+            });
+            window.scrollTo(0, 0);
+        }
+
+        // --- 2. Hệ thống Animation Lùa Bò ---
+        const cowTypes = [
+            { id: 0, emoji: '🐄', name: 'Sữa' },
+            { id: 1, emoji: '🐂', name: 'Vàng' },
+            { id: 2, emoji: '🐃', name: 'Đen' }
+        ];
+        
+        // Mảng bò cần lùa
+        const herd = [2, 0, 1, 2, 2, 0];
+        const countData = [0, 0, 0];
+        let isSimulating = false;
+
+        // Khởi tạo giao diện bãi cỏ ban đầu
+        function initFarm() {
+            const waitingArea = document.getElementById('waiting-cows');
+            waitingArea.innerHTML = '<span class="text-base font-extrabold text-slate-600 absolute -top-8 left-0 uppercase tracking-widest bg-white/50 px-3 py-1 rounded-lg">Bãi cỏ (Mảng A): [2, 0, 1, 2, 2, 0]</span>';
+            
+            herd.forEach((cowId, index) => {
+                const cowElement = document.createElement('div');
+                cowElement.className = 'cow-emoji';
+                cowElement.innerHTML = cowTypes[cowId].emoji;
+                cowElement.id = `cow-${index}`;
+                // Xếp hàng ngang giãn rộng hơn chút
+                cowElement.style.left = `${index * 55}px`;
+                cowElement.style.top = '10px';
+                waitingArea.appendChild(cowElement);
+            });
+
+            // Reset bộ đếm
+            countData.fill(0);
+            for(let i=0; i<3; i++) {
+                document.getElementById(`count-${i}`).innerText = '0';
+                document.getElementById(`pen-${i}`).classList.remove('highlight');
+            }
+            document.getElementById('sim-status').classList.add('hidden');
+        }
+
+        // Delay helper
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        // Hàm chạy mô phỏng chính
+        async function runFarmSimulation() {
+            if (isSimulating) return;
+            isSimulating = true;
+            initFarm(); // Reset
+            
+            const statusEl = document.getElementById('sim-status');
+            statusEl.classList.remove('hidden');
+
+            for (let i = 0; i < herd.length; i++) {
+                const cowId = herd[i];
+                const cowEl = document.getElementById(`cow-${i}`);
+                const targetPen = document.getElementById(`pen-${cowId}`);
+                const counterEl = document.getElementById(`count-${cowId}`);
+                
+                statusEl.innerHTML = `Đang lùa bò <strong class="text-orange-600 text-lg">${cowTypes[cowId].name} (Màu ${cowId})</strong> vào chuồng...`;
+
+                // 1. Tính toán vị trí đích đến của chuồng tương đối so với bãi cỏ
+                const penRect = targetPen.getBoundingClientRect();
+                const startRect = cowEl.getBoundingClientRect();
+                
+                // Hiệu ứng nhấc lên nhẹ trước khi di chuyển
+                cowEl.style.transform = 'scale(1.3) rotate(-15deg)';
+                await sleep(250);
+
+                // 2. Di chuyển (Translate) con bò đến vị trí chuồng
+                const moveX = penRect.left - startRect.left + (penRect.width / 2) - 30;
+                const moveY = penRect.top - startRect.top + 30;
+                
+                cowEl.style.transform = `translate(${moveX}px, ${moveY}px) scale(0.7)`;
+                
+                // Đợi bò bay vào chuồng
+                await sleep(750);
+
+                // 3. Xử lý khi bò đã vào chuồng
+                cowEl.style.opacity = '0'; // Giấu bò đi (đã chui vào trong)
+                
+                // Highlight chuồng
+                targetPen.classList.add('highlight');
+                
+                // Cập nhật bộ đếm
+                countData[cowId]++;
+                counterEl.innerText = countData[cowId];
+                
+                // Hiệu ứng nảy số mạnh hơn
+                counterEl.style.transform = 'scale(1.8)';
+                counterEl.style.color = '#ea580c';
+                
+                await sleep(350);
+                
+                // Trả chuồng về bình thường
+                counterEl.style.transform = 'scale(1)';
+                counterEl.style.color = '#c2410c';
+                targetPen.classList.remove('highlight');
+                
+                await sleep(250);
+            }
+
+            statusEl.innerHTML = `<span class="text-green-700">Hoàn tất! Chuồng Đen (số 2) có nhiều bò nhất: ${countData[2]} con.</span>`;
+            isSimulating = false;
+        }
+
+        // Gọi khởi tạo lần đầu
+        window.onload = initFarm;
+    </script>
+</body>
+</html>
