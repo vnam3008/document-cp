@@ -311,29 +311,171 @@ cout << <span class="string">"So bo den la: "</span> << countArray[<span class="
 
             <section id="practice" class="tab-content max-w-5xl mx-auto">
                 <h2 class="text-3xl md:text-4xl font-extrabold mb-6 text-slate-800 tracking-tight">Luyện Tập & Bẫy CP</h2>
-                <p class="text-slate-600 mb-10 text-xl leading-relaxed">Áp dụng tư duy vào giải bài tập và những lưu ý "chết người" khi đi thi Lập trình thi đấu (Competitive Programming).</p>
+                <p class="text-slate-600 mb-10 text-xl leading-relaxed">Áp dụng tư duy vào giải bài tập. Hãy thử tự nghĩ thuật toán trước khi bấm vào xem code giải nhé!</p>
 
                 <div class="space-y-8">
-                    <!-- Bài tập -->
+                    <!-- Bài tập 1 -->
                     <div class="glass-card p-8 md:p-10 rounded-3xl border-l-8 border-l-green-500 shadow-md">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                             <h3 class="font-extrabold text-2xl text-slate-800">Bài 1: Đếm số phần tử phân biệt</h3>
-                            <span class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-extrabold rounded-xl uppercase tracking-widest">Mảng Đánh Dấu</span>
+                            <div class="flex gap-2">
+                                <span class="px-4 py-2 bg-green-100 text-green-700 text-sm font-extrabold rounded-xl uppercase tracking-widest">Dễ</span>
+                                <span class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-extrabold rounded-xl uppercase tracking-widest">Mảng Đánh Dấu</span>
+                            </div>
                         </div>
-                        <p class="text-slate-700 text-lg mb-6 leading-relaxed font-medium">
-                            Cho mảng <strong>A</strong> gồm <strong>N</strong> phần tử (N &le; 10<sup>5</sup>). Các giá trị 0 &le; <strong>A[i]</strong> &le; 10<sup>6</sup>. Đếm xem có bao nhiêu con số khác nhau xuất hiện trong mảng?
+                        <p class="text-slate-700 text-lg mb-4 leading-relaxed font-medium">
+                            <strong>Đề bài:</strong> Cho mảng <strong>A</strong> gồm <strong>N</strong> phần tử (N &le; 10<sup>5</sup>). Các giá trị 0 &le; <strong>A[i]</strong> &le; 10<sup>6</sup>. Đếm xem có bao nhiêu con số khác nhau xuất hiện trong mảng?
                         </p>
+                        <p class="text-slate-500 text-base mb-6 italic">Ví dụ: Mảng A = [2, 1, 2, 5, 1] ➔ Đáp án là 3 (gồm các số 1, 2, 5).</p>
+                        
                         <details class="group bg-slate-50 border-2 border-slate-200 rounded-2xl overflow-hidden">
                             <summary class="font-bold text-slate-800 text-lg p-5 cursor-pointer hover:bg-slate-100 transition-colors list-none flex justify-between items-center">
-                                Xem gợi ý giải thuật
+                                Xem thuật toán & Code giải C++
                                 <span class="text-slate-400 group-open:rotate-180 transition-transform text-xl">▼</span>
                             </summary>
-                            <div class="p-6 pt-0 text-lg text-slate-700 border-t-2 border-slate-200 bg-white leading-relaxed font-medium">
-                                <ul class="list-disc pl-5 space-y-3">
-                                    <li>Tạo <code>bool mark[1000001] = {false};</code></li>
-                                    <li>Duyệt mảng gốc, với mỗi phần tử <code>x</code>, đánh dấu <code>mark[x] = true;</code></li>
-                                    <li>Cuối cùng, duyệt mảng <code>mark</code> từ <code>0</code> đến <code>10<sup>6</sup></code>, đếm xem có bao nhiêu ô mang giá trị <code>true</code>. Đó chính là đáp án.</li>
-                                </ul>
+                            <div class="p-6 pt-0 text-lg text-slate-700 border-t-2 border-slate-200 bg-slate-900 leading-relaxed font-medium">
+<pre class="code-font text-base !p-0 !bg-transparent !shadow-none"><code class="language-cpp"><span class="keyword">#include &lt;iostream&gt;</span>
+<span class="keyword">using namespace</span> std;
+
+<span class="comment">// Khai báo biến toàn cục (Mảng boolean tự động được gán bằng false)</span>
+<span class="comment">// Kích thước 1000005 để chứa vừa số lớn nhất có thể là 10^6</span>
+<span class="keyword">bool</span> mark[<span class="number">1000005</span>]; 
+
+<span class="keyword">int</span> main() {
+    <span class="keyword">int</span> n; 
+    cin >> n;
+    <span class="keyword">int</span> count = <span class="number">0</span>; <span class="comment">// Bộ đếm số lượng phần tử khác nhau</span>
+    
+    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i < n; i++) {
+        <span class="keyword">int</span> x; 
+        cin >> x;
+        <span class="comment">// Nếu con số x này CHƯA TỪNG xuất hiện (mark[x] đang là false)</span>
+        <span class="keyword">if</span>(mark[x] == <span class="keyword">false</span>) {
+            count++;            <span class="comment">// 1. Ghi nhận thêm 1 số mới</span>
+            mark[x] = <span class="keyword">true</span>;     <span class="comment">// 2. Đánh dấu là x đã xuất hiện rồi nhé!</span>
+        }
+        <span class="comment">// (Nếu x đã xuất hiện rồi thì bỏ qua không đếm nữa)</span>
+    }
+    
+    cout << count;
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</code></pre>
+                                <div class="mt-4 bg-slate-800 p-4 rounded-xl text-slate-300 text-base">
+                                    <strong class="text-green-400">Giải thích logic:</strong> Giống như thầy giáo điểm danh. Thầy cầm danh sách học sinh (mảng mark), ban đầu ai cũng vắng mặt (false). Khi đọc tên bạn <code>x</code> đi học, nếu thấy bạn này nãy giờ chưa điểm danh, thầy sẽ cộng 1 vào sĩ số và đánh dấu <code>mark[x] = true</code>. Nếu lát sau lại có người hô tên bạn <code>x</code> nữa, thầy nhìn sổ thấy <code>true</code> rồi nên lờ đi.
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- Bài tập 2 -->
+                    <div class="glass-card p-8 md:p-10 rounded-3xl border-l-8 border-l-orange-500 shadow-md">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                            <h3 class="font-extrabold text-2xl text-slate-800">Bài 2: Tìm "Hoa Hậu" (Phần tử xuất hiện nhiều nhất)</h3>
+                            <div class="flex gap-2">
+                                <span class="px-4 py-2 bg-orange-100 text-orange-700 text-sm font-extrabold rounded-xl uppercase tracking-widest">Trung bình</span>
+                                <span class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-extrabold rounded-xl uppercase tracking-widest">Mảng Đếm</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-700 text-lg mb-4 leading-relaxed font-medium">
+                            <strong>Đề bài:</strong> Cho mảng <strong>A</strong> gồm <strong>N</strong> phần tử (N &le; 10<sup>5</sup>, 0 &le; <strong>A[i]</strong> &le; 10<sup>5</sup>). Tìm con số xuất hiện nhiều lần nhất trong mảng. Nếu có nhiều con số có cùng số lần xuất hiện nhiều nhất, hãy in ra số nhỏ nhất.
+                        </p>
+                        <p class="text-slate-500 text-base mb-6 italic">Ví dụ: Mảng A = [4, 2, 4, 1, 2, 4] ➔ Đáp án là 4 (xuất hiện 3 lần).</p>
+                        
+                        <details class="group bg-slate-50 border-2 border-slate-200 rounded-2xl overflow-hidden">
+                            <summary class="font-bold text-slate-800 text-lg p-5 cursor-pointer hover:bg-slate-100 transition-colors list-none flex justify-between items-center">
+                                Xem thuật toán & Code giải C++
+                                <span class="text-slate-400 group-open:rotate-180 transition-transform text-xl">▼</span>
+                            </summary>
+                            <div class="p-6 pt-0 text-lg text-slate-700 border-t-2 border-slate-200 bg-slate-900 leading-relaxed font-medium">
+<pre class="code-font text-base !p-0 !bg-transparent !shadow-none"><code class="language-cpp"><span class="keyword">#include &lt;iostream&gt;</span>
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">int</span> cnt[<span class="number">100005</span>]; <span class="comment">// Mảng đếm (Chuồng bò)</span>
+
+<span class="keyword">int</span> main() {
+    <span class="keyword">int</span> n; cin >> n;
+    <span class="keyword">int</span> max_val = <span class="number">0</span>; <span class="comment">// Lưu con số lớn nhất trong mảng A để thu hẹp phạm vi tìm kiếm</span>
+    
+    <span class="comment">// Bước 1: Lùa bò vào chuồng</span>
+    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i < n; i++) {
+        <span class="keyword">int</span> x; cin >> x;
+        cnt[x]++; <span class="comment">// Con số x xuất hiện ➔ Chuồng x tăng 1</span>
+        <span class="keyword">if</span>(x > max_val) max_val = x; <span class="comment">// Cập nhật con số lớn nhất</span>
+    }
+    
+    <span class="comment">// Bước 2: Đi dạo một vòng các chuồng để tìm chuồng đông nhất</span>
+    <span class="keyword">int</span> ans = <span class="number">-1</span>;       <span class="comment">// Lưu "tên" con số xuất hiện nhiều nhất</span>
+    <span class="keyword">int</span> max_freq = <span class="number">0</span>;   <span class="comment">// Lưu "số lần" xuất hiện của nó</span>
+    
+    <span class="comment">// Duyệt từ 0 đến max_val (Duyệt theo chiều tăng dần để lấy số nhỏ nhất nếu bằng nhau)</span>
+    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i <= max_val; i++) {
+        <span class="keyword">if</span>(cnt[i] > max_freq) {
+            max_freq = cnt[i]; <span class="comment">// Phá kỷ lục số lần xuất hiện</span>
+            ans = i;           <span class="comment">// Ghi nhận "tên" kẻ phá kỷ lục</span>
+        }
+    }
+    
+    cout << ans;
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</code></pre>
+                                <div class="mt-4 bg-slate-800 p-4 rounded-xl text-slate-300 text-base">
+                                    <strong class="text-orange-400">Giải thích logic:</strong> Đầu tiên ta dùng Mảng đếm (như lùa bò vào chuồng) để thống kê sĩ số của từng con số. Bước 2, thay vì duyệt mảng ban đầu, ta đi bộ một vòng dọc theo các "chuồng" từ <code>0</code> đến <code>max_val</code>. Hễ thấy chuồng nào đông hơn kỷ lục cũ thì ta cập nhật kỷ lục mới. Vì ta duyệt từ nhỏ đến lớn (từ 0 trở lên), nên nếu có 2 chuồng đông BẰNG NHAU, chuồng số nhỏ hơn sẽ được giữ lại, giải quyết hoàn hảo yêu cầu đề bài!
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- Bài tập 3 -->
+                    <div class="glass-card p-8 md:p-10 rounded-3xl border-l-8 border-l-blue-500 shadow-md">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                            <h3 class="font-extrabold text-2xl text-slate-800">Bài 3: Truy Tìm Số Bị Thiếu Nhỏ Nhất</h3>
+                            <div class="flex gap-2">
+                                <span class="px-4 py-2 bg-blue-100 text-blue-700 text-sm font-extrabold rounded-xl uppercase tracking-widest">Trung bình</span>
+                                <span class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-extrabold rounded-xl uppercase tracking-widest">Mảng Đánh Dấu</span>
+                            </div>
+                        </div>
+                        <p class="text-slate-700 text-lg mb-4 leading-relaxed font-medium">
+                            <strong>Đề bài:</strong> Cho mảng <strong>A</strong> gồm <strong>N</strong> phần tử (N &le; 10<sup>5</sup>). Các giá trị trong mảng có thể là số âm hoặc dương vô cùng lớn. Hãy tìm <strong>số nguyên DƯƠNG (lớn hơn 0) nhỏ nhất</strong> không xuất hiện trong mảng.
+                        </p>
+                        <p class="text-slate-500 text-base mb-6 italic">Ví dụ: Mảng A = [3, 4, -1, 1] ➔ Đáp án là 2. (Vì 1 đã có, số nguyên dương nhỏ nhất tiếp theo bị khuyết là 2).</p>
+                        
+                        <details class="group bg-slate-50 border-2 border-slate-200 rounded-2xl overflow-hidden">
+                            <summary class="font-bold text-slate-800 text-lg p-5 cursor-pointer hover:bg-slate-100 transition-colors list-none flex justify-between items-center">
+                                Xem thuật toán & Code giải C++
+                                <span class="text-slate-400 group-open:rotate-180 transition-transform text-xl">▼</span>
+                            </summary>
+                            <div class="p-6 pt-0 text-lg text-slate-700 border-t-2 border-slate-200 bg-slate-900 leading-relaxed font-medium">
+<pre class="code-font text-base !p-0 !bg-transparent !shadow-none"><code class="language-cpp"><span class="keyword">#include &lt;iostream&gt;</span>
+<span class="keyword">using namespace</span> std;
+
+<span class="comment">// Chỉ cần đánh dấu đến 10^6 là an toàn cho bài toán CP thông thường</span>
+<span class="keyword">bool</span> present[<span class="number">1000005</span>]; 
+
+<span class="keyword">int</span> main() {
+    <span class="keyword">int</span> n; cin >> n;
+    
+    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i < n; i++) {
+        <span class="keyword">long long</span> x; cin >> x;
+        <span class="comment">// Lọc cực gắt: Chỉ quan tâm các số DƯƠNG và không quá lớn (vừa mảng)</span>
+        <span class="comment">// Bọn số âm (-1, -5) hay số 0 đều bị ngó lơ!</span>
+        <span class="keyword">if</span>(x > <span class="number">0</span> && x <= <span class="number">1000000</span>) {
+            present[x] = <span class="keyword">true</span>;
+        }
+    }
+    
+    <span class="comment">// Bắt đầu dò từ số nguyên dương nhỏ nhất là 1</span>
+    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">1</span>; i <= <span class="number">1000005</span>; i++) {
+        <span class="keyword">if</span>(present[i] == <span class="keyword">false</span>) {
+            cout << i; <span class="comment">// In ra thủ phạm mất tích đầu tiên</span>
+            <span class="keyword">break</span>;     <span class="comment">// Bắt được rồi thì thoát vòng lặp ngay!</span>
+        }
+    }
+    
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</code></pre>
+                                <div class="mt-4 bg-slate-800 p-4 rounded-xl text-slate-300 text-base">
+                                    <strong class="text-blue-400">Giải thích logic:</strong> Đây là một bài kinh điển (First Missing Positive). Bẫy của bài này là có cả số âm. Nhưng tư duy cực kỳ đơn giản: Vì ta chỉ tìm số <strong>nguyên dương</strong>, ta ném hết bọn số âm đi không thèm quan tâm. Tạo một mảng đánh dấu <code>present</code>. Ai lớn hơn 0 thì đánh dấu <code>true</code>. Cuối cùng, dùng 1 vòng lặp chạy bắt đầu từ <code>1, 2, 3...</code> hễ ô nào bị <code>false</code> (chưa ai đánh dấu) thì đó chính là số dương nhỏ nhất bị thiếu!
+                                </div>
                             </div>
                         </details>
                     </div>
