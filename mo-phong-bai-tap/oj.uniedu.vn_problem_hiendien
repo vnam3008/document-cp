@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mô Phỏng Thuật Toán Tìm Ma Trận Con</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Fira+Code:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* */
+        .matrix-cell {
+            transition: all 0.3s ease;
+        }
+
+        /* Khung cửa sổ trượt (Sliding Window) */
+        .window-frame {
+            box-shadow: inset 0 0 0 4px #3b82f6; /* Viền xanh dương đậm */
+            background-color: rgba(219, 234, 254, 0.4); 
+            z-index: 5;
+        }
+
+        /* Trạng thái đang so sánh */
+        .comparing {
+            background-color: #fef08a !important; /* Vàng */
+            transform: scale(1.15);
+            z-index: 10;
+            box-shadow: 0 4px 10px -1px rgba(0, 0, 0, 0.2);
+            border-color: #eab308;
+        }
+
+        /* Lỗi / Không khớp */
+        .mismatch {
+            background-color: #fca5a5 !important; /* Đỏ */
+            color: white;
+            animation: shake 0.4s;
+            border-color: #ef4444;
+        }
+
+        /* Khớp */
+        .match {
+            background-color: #86efac !important; /* Xanh lá */
+            color: #14532d;
+            border-color: #22c55e;
+        }
+        
+        /* Thành công toàn bộ */
+        .success-window {
+            box-shadow: inset 0 0 0 4px #22c55e !important;
+            background-color: rgba(187, 247, 208, 0.6) !important;
+            animation: pulse-green 1.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+        
+        @keyframes pulse-green {
+            0% { box-shadow: inset 0 0 0 4px rgba(34, 197, 94, 0.7); }
+            50% { box-shadow: inset 0 0 0 6px rgba(34, 197, 94, 1); }
+            100% { box-shadow: inset 0 0 0 4px rgba(34, 197, 94, 0.7); }
+        }
+
+        /* */
+        /* Code Tracker Highlight */
+        .code-line {
+            padding: 2px 8px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .code-line.active {
+            background-color: rgba(234, 179, 8, 0.2); /* Vàng nhạt */
+            border-left: 3px solid #eab308;
+            font-weight: 700;
+            color: #fbbf24;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar-dark::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar-dark::-webkit-scrollbar-thumb {
+            background-color: #475569;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6 flex flex-col h-screen overflow-hidden">
+
+    <header class="mb-4 text-center md:text-left shrink-0">
+        <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
+            🔎 Tìm Ma Trận Con (Tọa độ 1-based)
+        </h1>
+    </header>
+
+    <!-- -->
+    <main class="flex-1 flex flex-col lg:flex-row gap-4 overflow-hidden">
+        
+        <!-- CỘT TRÁI: MA TRẬN & ĐIỀU KHIỂN (Width: 60%) -->
+        <div class="flex flex-col gap-4 w-full lg:w-3/5 h-full overflow-y-auto custom-scrollbar pr-2">
+            
+            <!-- Điều khiển -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 shrink-0">
+                <div class="flex flex-wrap items-center gap-4">
+                    <button id="btn-start" onclick="startSimulation()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors shadow-md flex items-center gap-2">
+                        ▶ Bắt đầu trượt
+                    </button>
+                    <button id="btn-reset" onclick="resetSimulation()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-6 rounded-lg transition-colors flex items-center gap-2">
+                        ↺ Đặt lại
+                    </button>
+                    <div class="flex-1 min-w-[200px] flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-lg border border-slate-100">
+                        <span class="text-sm font-semibold text-slate-600 whitespace-nowrap">Tốc độ: <span id="speed-label" class="text-blue-600">Vừa</span></span>
+                        <input type="range" id="speed-slider" min="1" max="5" value="3" class="w-full h-1.5 bg-slate-300 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col xl:flex-row gap-4 shrink-0">
+                <!-- Ma Trận A -->
+                <div class="flex-1 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="font-bold text-slate-700 flex items-center gap-2">
+                            <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">M x N</span>
+                            Ma Trận A (Tranh)
+                        </h2>
+                    </div>
+                    <div id="grid-A-container" class="flex justify-center relative overflow-x-auto">
+                        <!-- JS Render -->
+                    </div>
+                </div>
+
+                <!-- Ma Trận B -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 h-fit xl:w-64">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="font-bold text-slate-700 flex items-center gap-2">
+                            <span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-xs">P x Q</span>
+                            Khung B (Mẫu)
+                        </h2>
+                    </div>
+                    <div id="grid-B-container" class="flex justify-center overflow-x-auto">
+                        <!-- JS Render -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Khoảng trống đẩy footer -->
+            <div class="pb-10"></div>
+        </div>
+
+        <!-- -->
+        <!-- CỘT PHẢI: CODE TRACKER & LOGS (Width: 40%) -->
+        <div class="w-full lg:w-2/5 flex flex-col gap-4 h-full">
+            
+            <!-- Code Tracker Panel -->
+            <div class="bg-slate-900 rounded-xl shadow-md flex flex-col h-1/2 border border-slate-700 overflow-hidden shrink-0">
+                <div class="bg-slate-800 p-2.5 border-b border-slate-700 flex items-center justify-between">
+                    <h3 class="font-bold text-slate-200 text-sm flex items-center gap-2">
+                        <span class="text-lg">💻</span> Code C++
+                    </h3>
+                    <span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded uppercase">Đồng bộ mô phỏng</span>
+                </div>
+                <div class="p-4 overflow-y-auto custom-scrollbar-dark text-sm code-font text-slate-300 bg-[#1e1e1e] flex-1">
+<pre class="m-0 leading-relaxed">
+<div id="code-1" class="code-line">for (int i = 1; i <= M - P + 1; i++) {</div>
+<div id="code-2" class="code-line">  for (int j = 1; j <= N - Q + 1; j++) {</div>
+<div id="code-3" class="code-line">    <span class="text-slate-500">// Đặt khung B lên A tại tọa độ (i, j)</span></div>
+<div id="code-4" class="code-line">    bool isMatch = true;</div>
+<div id="code-5" class="code-line">    for (int x = 1; x <= P; x++) {</div>
+<div id="code-6" class="code-line">      for (int y = 1; y <= Q; y++) {</div>
+<div id="code-7" class="code-line">        int rA = i + x - 1; <span class="text-slate-500">// Hàng tương ứng trên A</span></div>
+<div id="code-8" class="code-line">        int cA = j + y - 1; <span class="text-slate-500">// Cột tương ứng trên A</span></div>
+<div id="code-9" class="code-line">        if (A[rA][cA] != B[x][y]) {</div>
+<div id="code-10" class="code-line">          isMatch = false; <span class="text-slate-500">// SAI!</span></div>
+<div id="code-11" class="code-line">          break; <span class="text-slate-500">// Hủy khung này</span></div>
+<div id="code-12" class="code-line">        }</div>
+<div id="code-13" class="code-line">      }</div>
+<div id="code-14" class="code-line">      if (!isMatch) break;</div>
+<div id="code-15" class="code-line">    }</div>
+<div id="code-16" class="code-line">    if (isMatch) return true; <span class="text-slate-500">// TÌM THẤY!</span></div>
+<div id="code-17" class="code-line">  }</div>
+<div id="code-18" class="code-line">}</div>
+<div id="code-19" class="code-line">return false; <span class="text-slate-500">// Không thấy</span></div>
+</pre>
+                </div>
+            </div>
+
+            <!-- Bảng Log -->
+            <div class="bg-white rounded-xl shadow-md flex flex-col flex-1 border border-slate-200 overflow-hidden">
+                <div class="bg-slate-50 p-2.5 border-b border-slate-200 flex items-center justify-between">
+                    <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                        <span class="text-lg">📝</span> Giải thích thuật toán
+                    </h3>
+                </div>
+                <div id="log-content" class="p-4 overflow-y-auto custom-scrollbar text-sm space-y-2 flex-1">
+                    <div class="text-slate-400 italic">Sẵn sàng mô phỏng... Bấm "Bắt đầu trượt".</div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // --- DỮ LIỆU ĐẦU VÀO ---
+        const A = [
+            [1, 2, 3, 4, 5],
+            [6, 7, 8, 9, 0],
+            [1, 2, 8, 9, 1], // Chứa (8, 9)
+            [3, 4, 5, 6, 7]  // Chứa (5, 6)
+        ];
+        
+        const B = [
+            [8, 9],
+            [5, 6]
+        ];
+
+        const M = A.length;
+        const N = A[0].length;
+        const P = B.length;
+        const Q = B[0].length;
+
+        // --- BIẾN TRẠNG THÁI ---
+        let simulationRunning = false;
+        let stopRequested = false;
+        let delayMs = 600;
+
+        // Tham chiếu DOM
+        const gridAContainer = document.getElementById('grid-A-container');
+        const gridBContainer = document.getElementById('grid-B-container');
+        const logContent = document.getElementById('log-content');
+        const speedSlider = document.getElementById('speed-slider');
+        const speedLabel = document.getElementById('speed-label');
+        const btnStart = document.getElementById('btn-start');
+
+        // --- HÀM TIỆN ÍCH ---
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        const scrollToBottom = () => { logContent.scrollTop = logContent.scrollHeight; };
+
+        const addLog = (message, type = 'normal') => {
+            const div = document.createElement('div');
+            div.className = 'py-1 border-b border-slate-50 last:border-0';
+            
+            if (type === 'normal') div.className += ' text-slate-600';
+            else if (type === 'highlight') div.className += ' text-blue-600 font-semibold bg-blue-50 px-2 rounded';
+            else if (type === 'error') div.className += ' text-red-600 font-semibold';
+            else if (type === 'success') div.className += ' text-green-600 font-bold bg-green-50 px-2 rounded';
+            else if (type === 'info') div.className += ' text-slate-800 font-bold';
+            
+            div.innerHTML = `<span class="text-slate-400 mr-1">▶</span> ${message}`;
+            logContent.appendChild(div);
+            scrollToBottom();
+        };
+
+        const highlightCode = (lineIds) => {
+            document.querySelectorAll('.code-line.active').forEach(el => el.classList.remove('active'));
+            if(!Array.isArray(lineIds)) lineIds = [lineIds];
+            lineIds.forEach(id => {
+                const el = document.getElementById(`code-${id}`);
+                if (el) el.classList.add('active');
+            });
+        };
+
+        function renderGrids() {
+            // Grid A
+            gridAContainer.innerHTML = '';
+            const gridA = document.createElement('div');
+            gridA.style.display = 'grid';
+            gridA.style.gridTemplateColumns = `repeat(${N}, minmax(0, 1fr))`;
+            gridA.className = 'gap-1 p-2 bg-slate-50 rounded-lg border border-slate-200';
+            
+            for (let i = 0; i < M; i++) {
+                for (let j = 0; j < N; j++) {
+                    const cell = document.createElement('div');
+                    cell.id = `cell-A-${i}-${j}`;
+                    let dispI = i + 1, dispJ = j + 1; 
+                    cell.className = 'matrix-cell w-10 h-10 lg:w-12 lg:h-12 bg-white border border-slate-300 rounded shadow-sm flex items-center justify-center font-bold text-lg text-slate-700 code-font relative';
+                    
+                    const coord = document.createElement('span');
+                    coord.className = 'absolute top-0 left-1 text-[9px] text-slate-400 font-normal';
+                    coord.innerText = `${dispI},${dispJ}`; 
+                    
+                    cell.appendChild(coord);
+                    cell.appendChild(document.createTextNode(A[i][j]));
+                    gridA.appendChild(cell);
+                }
+            }
+            gridAContainer.appendChild(gridA);
+
+            // Grid B
+            gridBContainer.innerHTML = '';
+            const gridB = document.createElement('div');
+            gridB.style.display = 'grid';
+            gridB.style.gridTemplateColumns = `repeat(${Q}, minmax(0, 1fr))`;
+            gridB.className = 'gap-1 p-2 bg-slate-50 rounded-lg border border-slate-200';
+            
+            for (let i = 0; i < P; i++) {
+                for (let j = 0; j < Q; j++) {
+                    const cell = document.createElement('div');
+                    cell.id = `cell-B-${i}-${j}`;
+                    let dispI = i + 1, dispJ = j + 1;
+                    cell.className = 'matrix-cell w-10 h-10 lg:w-12 lg:h-12 bg-white border border-slate-300 rounded shadow-sm flex items-center justify-center font-bold text-lg text-slate-700 code-font relative';
+                    
+                    const coord = document.createElement('span');
+                    coord.className = 'absolute top-0 left-1 text-[9px] text-slate-400 font-normal';
+                    coord.innerText = `${dispI},${dispJ}`;
+                    
+                    cell.appendChild(coord);
+                    cell.appendChild(document.createTextNode(B[i][j]));
+                    gridB.appendChild(cell);
+                }
+            }
+            gridBContainer.appendChild(gridB);
+        }
+
+        function clearAllHighlights() {
+            for(let i=0; i<M; i++) {
+                for(let j=0; j<N; j++) {
+                    const el = document.getElementById(`cell-A-${i}-${j}`);
+                    if(el) el.className = 'matrix-cell w-10 h-10 lg:w-12 lg:h-12 bg-white border border-slate-300 rounded shadow-sm flex items-center justify-center font-bold text-lg text-slate-700 code-font relative';
+                }
+            }
+            for(let i=0; i<P; i++) {
+                for(let j=0; j<Q; j++) {
+                    const el = document.getElementById(`cell-B-${i}-${j}`);
+                    if(el) el.className = 'matrix-cell w-10 h-10 lg:w-12 lg:h-12 bg-white border border-slate-300 rounded shadow-sm flex items-center justify-center font-bold text-lg text-slate-700 code-font relative';
+                }
+            }
+        }
+
+        // --- CÁC HÀM HIỆU ỨNG THIẾU TRONG PHIÊN BẢN TRƯỚC ---
+        function highlightWindow(startX, startY) {
+            for(let x = 0; x < P; x++) {
+                for(let y = 0; y < Q; y++) {
+                    const el = document.getElementById(`cell-A-${startX + x}-${startY + y}`);
+                    if(el) el.classList.add('window-frame');
+                }
+            }
+        }
+
+        function setComparing(rowA, colA, rowB, colB) {
+            const cellA = document.getElementById(`cell-A-${rowA}-${colA}`);
+            const cellB = document.getElementById(`cell-B-${rowB}-${colB}`);
+            if(cellA) cellA.classList.add('comparing');
+            if(cellB) cellB.classList.add('comparing');
+        }
+
+        function removeComparing(rowA, colA, rowB, colB) {
+            const cellA = document.getElementById(`cell-A-${rowA}-${colA}`);
+            const cellB = document.getElementById(`cell-B-${rowB}-${colB}`);
+            if(cellA) cellA.classList.remove('comparing');
+            if(cellB) cellB.classList.remove('comparing');
+        }
+
+        function setCellResult(rowA, colA, rowB, colB, isMatch) {
+            const cellA = document.getElementById(`cell-A-${rowA}-${colA}`);
+            const cellB = document.getElementById(`cell-B-${rowB}-${colB}`);
+            const resultClass = isMatch ? 'match' : 'mismatch';
+            if(cellA) {
+                cellA.classList.remove('comparing');
+                cellA.classList.add(resultClass);
+            }
+            if(cellB) {
+                cellB.classList.remove('comparing');
+                cellB.classList.add(resultClass);
+            }
+        }
+
+        function setSuccessWindow(startX, startY) {
+            for(let x = 0; x < P; x++) {
+                for(let y = 0; y < Q; y++) {
+                    const el = document.getElementById(`cell-A-${startX + x}-${startY + y}`);
+                    if(el) {
+                        el.classList.remove('window-frame', 'match');
+                        el.classList.add('success-window');
+                    }
+                }
+            }
+        }
+        // ----------------------------------------------------
+
+        async function runSimulationAlgorithm() {
+            addLog(`Bắt đầu thuật toán. Kích thước A(${M}x${N}), B(${P}x${Q})`, 'info');
+            
+            for (let i = 0; i <= M - P; i++) {
+                let dispI = i + 1;
+                highlightCode(1);
+                await sleep(delayMs/2);
+
+                for (let j = 0; j <= N - Q; j++) {
+                    let dispJ = j + 1;
+                    if (stopRequested) return;
+
+                    highlightCode([2, 3]);
+                    clearAllHighlights();
+                    addLog(`--- BƯỚC TRƯỢT MỚI ---`, 'info');
+                    addLog(`Khung ảnh B đang đặt tại tọa độ <b>A[${dispI}][${dispJ}]</b>`, 'highlight');
+                    
+                    highlightWindow(i, j); 
+                    await sleep(delayMs * 1.5); 
+                    
+                    highlightCode(4);
+                    let isMatch = true;
+                    await sleep(delayMs/2);
+
+                    for (let x = 0; x < P; x++) {
+                        let dispX = x + 1;
+                        highlightCode(5);
+                        await sleep(delayMs/2);
+
+                        for (let y = 0; y < Q; y++) {
+                            let dispY = y + 1;
+                            if (stopRequested) return;
+                            
+                            highlightCode(6);
+                            const rowA = i + x;
+                            const colA = j + y;
+                            let dispRowA = rowA + 1;
+                            let dispColA = colA + 1;
+                            
+                            addLog(`Kiểm tra điểm ảnh: <b>A[${dispRowA}][${dispColA}]</b> (${A[rowA][colA]}) == <b>B[${dispX}][${dispY}]</b> (${B[x][y]}) ?`);
+                            
+                            setComparing(rowA, colA, x, y);
+                            await sleep(delayMs);
+                            
+                            highlightCode([7, 8, 9]);
+                            if (A[rowA][colA] !== B[x][y]) {
+                                setCellResult(rowA, colA, x, y, false);
+                                highlightCode([10, 11]);
+                                addLog(`=> KHÁC NHAU! Gặp 1 lỗi là hủy luôn cả khung này.`, 'error');
+                                isMatch = false;
+                                await sleep(delayMs);
+                                removeComparing(rowA, colA, x, y);
+                                break; 
+                            } else {
+                                setCellResult(rowA, colA, x, y, true);
+                                addLog(`=> Giống nhau. Kiểm tra tiếp...`);
+                                await sleep(delayMs / 2);
+                                removeComparing(rowA, colA, x, y);
+                            }
+                        }
+                        
+                        highlightCode(14);
+                        if (!isMatch) break; 
+                        await sleep(delayMs/2);
+                    }
+
+                    highlightCode(16);
+                    if (isMatch) {
+                        clearAllHighlights();
+                        setSuccessWindow(i, j);
+                        addLog(`🎉 TUYỆT VỜI! Đã tìm thấy ma trận B tại tọa độ A[${dispI}][${dispJ}]`, 'success');
+                        return; 
+                    }
+                    await sleep(delayMs/2);
+                }
+            }
+
+            highlightCode(19);
+            clearAllHighlights();
+            addLog(`❌ Đã trượt hết toàn bộ bức tranh A nhưng không thấy B.`, 'error');
+        }
+
+        async function startSimulation() {
+            if (simulationRunning) return;
+            
+            simulationRunning = true;
+            stopRequested = false;
+            btnStart.disabled = true;
+            btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+            btnStart.innerHTML = "⏳ Đang trượt...";
+            
+            logContent.innerHTML = ''; 
+            renderGrids();             
+            highlightCode([]);
+            
+            await runSimulationAlgorithm();
+            
+            simulationRunning = false;
+            btnStart.disabled = false;
+            btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnStart.innerHTML = "▶ Trượt lại từ đầu";
+        }
+
+        function resetSimulation() {
+            stopRequested = true; 
+            simulationRunning = false;
+            
+            btnStart.disabled = false;
+            btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnStart.innerHTML = "▶ Bắt đầu trượt";
+            
+            logContent.innerHTML = '<div class="text-slate-400 italic">Đã đặt lại. Bấm "Bắt đầu trượt".</div>';
+            renderGrids();
+            highlightCode([]);
+        }
+
+        speedSlider.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            const texts = ["Rất Chậm", "Chậm", "Vừa", "Nhanh", "Tốc Biến"];
+            const delays = [1500, 1000, 600, 200, 50]; 
+            
+            speedLabel.innerText = texts[val - 1];
+            delayMs = delays[val - 1];
+        });
+
+        // Khởi tạo
+        window.onload = function() {
+            renderGrids();
+        }
+    </script>
+</body>
+</html>
